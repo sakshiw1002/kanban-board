@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta name="apple-mobile-web-app-title" content="CodePen">
+
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+
+<title>Kanban Board</title>
+
+<script>
+  if (document.location.search.match(/type=embed/gi)) {
+    window.parent.postMessage("resize", "*");
+  }
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="">
+<div id="result-iframe-wrap" role="main">
+<iframe id="result" srcdoc="
+<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta/css/bootstrap.min.css'>
+<script>
+  window.console = window.console || function(t) {};
+</script>
+
+  <script>
+  if (document.location.search.match(/type=embed/gi)) {
+    window.parent.postMessage(&quot;resize&quot;, &quot;*&quot;);
+  }
+</script>
+
+  <div id=&quot;app&quot;></app>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/react/15.6.1/react-dom.min.js'></script>
+  
+      <script id=&quot;rendered-js&quot; >
+/*
+ * The Kanban React component
+ */
+class Kanban extends React.Component {
+  render() {
+    const style = {
+      'padding': '30px',
+      'paddingTop': '5px' };
+
+
+    return (
+      React.createElement(&quot;div&quot;, { style: style },
+      React.createElement(&quot;h1&quot;, null, &quot; Kanban Board&quot;),
+      React.createElement(KanbanBoard, null)));
+
+
+  }}
+
+
+/*
+      * The Kanban Board React component
+      */
+class KanbanBoard extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoading: true,
+      projects: [],
+      draggedOverCol: 0 };
+
+    this.handleOnDragEnter = this.handleOnDragEnter.bind(this);
+    this.handleOnDragEnd = this.handleOnDragEnd.bind(this);
+    this.columns = [
+    { name: 'To Do', stage: 1 },
+    { name: 'Doing', stage: 2 },
+    { name: 'Done', stage: 3 }];
+
+  }
+
+  componentDidMount() {
+    this.setState({ projects: projectList, isLoading: false });
+  }
+
+  //this is called when a Kanban card is dragged over a column (called by column)
+  handleOnDragEnter(e, stageValue) {
+    this.setState({ draggedOverCol: stageValue });
+  }
+
+  //this is called when a Kanban card dropped over a column (called by card)
+  handleOnDragEnd(e, project) {
+    const updatedProjects = this.state.projects.slice(0);
+    updatedProjects.find(projectObject => {return projectObject.name === project.name;}).project_stage = this.state.draggedOverCol;
+    this.setState({ projects: updatedProjects });
+  }
+
+  render() {
+    if (this.state.isLoading) {
+      return React.createElement(&quot;h3&quot;, null, &quot;Loading...&quot;);
+    }
+
+    return (
+      React.createElement(&quot;div&quot;, null,
+      this.columns.map(column => {
+        return (
+          React.createElement(KanbanColumn, {
+            name: column.name,
+            stage: column.stage,
+            projects: this.state.projects.filter(project => {return parseInt(project.project_stage, 10) === column.stage;}),
+            onDragEnter: this.handleOnDragEnter,
+            onDragEnd: this.handleOnDragEnd,
+            key: column.stage }));
+
+
+      })));
+
+
+  }}
+
+
+/*
+      * The Kanban Board Column React component
+      */
+class KanbanColumn extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { mouseIsHovering: false };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.state = { mouseIsHovering: false };
+  }
+
+  generateKanbanCards() {
+    return this.props.projects.slice(0).map(project => {
+      return (
+        React.createElement(KanbanCard, {
+          project: project,
+          key: project.name,
+          onDragEnd: this.props.onDragEnd }));
+
+
+    });
+  }
+
+  render() {
+    const columnStyle = {
+      'display': 'inline-block',
+      'verticalAlign': 'top',
+      'marginRight': '5px',
+      'marginBottom': '5px',
+      'paddingLeft': '5px',
+      'paddingTop': '0px',
+      'width': '230px',
+      'textAlign': 'center',
+      'backgroundColor': this.state.mouseIsHovering ? '#d3d3d3' : '#f0eeee' };
+
+    return (
+      React.createElement(&quot;div&quot;, {
+        style: columnStyle,
+        onDragEnter: e => {this.setState({ mouseIsHovering: true });this.props.onDragEnter(e, this.props.stage);},
+        onDragExit: e => {this.setState({ mouseIsHovering: false });} },
+
+      React.createElement(&quot;h4&quot;, null, this.props.stage, &quot;. &quot;, this.props.name, &quot; (&quot;, this.props.projects.length, &quot;)&quot;),
+      this.generateKanbanCards(),
+      React.createElement(&quot;br&quot;, null)));
+
+  }}
+
+
+/*
+      * The Kanban Board Card component
+      */
+class KanbanCard extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      collapsed: true };
+
+  }
+
+  render() {
+    const cardStyle = {
+      'backgroundColor': '#f9f7f7',
+      'paddingLeft': '0px',
+      'paddingTop': '5px',
+      'paddingBottom': '5px',
+      'marginLeft': '0px',
+      'marginRight': '5px',
+      'marginBottom': '5px' };
+
+
+    return (
+      React.createElement(&quot;div&quot;, {
+        style: cardStyle,
+        draggable: true,
+        onDragEnd: e => {this.props.onDragEnd(e, this.props.project);} },
+
+      React.createElement(&quot;div&quot;, null, React.createElement(&quot;h4&quot;, null, this.props.project.name)),
+      this.state.collapsed ?
+      null :
+      React.createElement(&quot;div&quot;, null, React.createElement(&quot;strong&quot;, null, &quot;Description: &quot;), this.props.project.description, React.createElement(&quot;br&quot;, null)),
+
+      React.createElement(&quot;div&quot;, {
+        style: { 'width': '100%' },
+        onClick: e => {this.setState({ collapsed: !this.state.collapsed });} },
+
+      this.state.collapsed ? String.fromCharCode('9660') : String.fromCharCode('9650'))));
+
+
+
+  }}
+
+
+/*
+      * Projects to be displayed on Kanban Board
+      */
+let projectList = [
+{
+  name: 'Project 1',
+  
+  project_stage: 1 },
+
+{
+  name: 'Project 2',
+  
+  project_stage: 1 },
+
+{
+  name: 'Project 3',
+  
+  project_stage: 1 }]  ;
+
+
+
+/*
+                        * Render the Kanban Board in the &quot;app&quot; div
+                        */
+ReactDOM.render(React.createElement(Kanban, null), document.getElementById('app'));
+//# sourceURL=pen.js
+    </script>
+
+  
+
+  
+</body>
+
+</html>
+ 
+" sandbox="allow-forms allow-modals allow-pointer-lock allow-popups allow-presentation  allow-scripts allow-top-navigation-by-user-activation" allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; microphone; midi; payment; vr" allowTransparency="true" allowpaymentrequest="true" allowfullscreen="true" class="result-iframe">
+      </iframe>
+</div>
+</body>
+</html>
